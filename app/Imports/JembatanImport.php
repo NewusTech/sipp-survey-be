@@ -45,7 +45,10 @@ class JembatanImport implements ToCollection
                     //     $messages[] = 'gagal import, data tidak boleh sama';
                     //     return;
                     // }
-                    $selectKecamatan = Kecamatan::where('name', $item[1])->first();
+                    $originName = trim($item[1]); // Remove leading/trailing whitespace
+                    $lowercaseWord = strtolower($originName); // Convert to lowercase
+                    $selectKecamatan = Kecamatan::whereRaw('LOWER(TRIM(name)) = ?', [$lowercaseWord])->first();
+                   
                     if (!$selectKecamatan) {
                         $messages[] = 'Kecamatan dengan nama ' . $item[1] . ' tidak ditemukan';
                         continue;
