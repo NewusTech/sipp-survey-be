@@ -25,27 +25,26 @@ class JembatanImport implements ToCollection
                 $data[2]
             );
             $messages = [];
-            FacadesDB::beginTransaction();
             try {
                 foreach ($data as $key => $item) {
                     // check no_jembatan
-                    $noJembatan = Jembatan::where('no_jembatan', $item[3])->exists();
-                    if ($noJembatan) {
-                        $messages[] = 'Data no_jembatan sudah ada, no_jembatan tidak boleh duplicate';
-                        return;
-                    }
+                    // $noJembatan = Jembatan::where('no_jembatan', $item[3])->exists();
+                    // if ($noJembatan) {
+                    //     $messages[] = 'Data no_jembatan sudah ada, no_jembatan tidak boleh duplicate';
+                    //     return;
+                    // }
     
                     // check nama ruas
-                    $existNameRuas = Jembatan::where('nama_ruas', $item[2])->exists();
-                    if ($existNameRuas) {
-                        $messages[] = 'Data nama ruas sudah ada, nama ruas tidak boleh duplicate';
-                        return;
-                    }
+                    // $existNameRuas = Jembatan::where('nama_ruas', $item[2])->exists();
+                    // if ($existNameRuas) {
+                    //     $messages[] = 'Data nama ruas sudah ada, nama ruas tidak boleh duplicate';
+                    //     return;
+                    // }
     
-                    if ($noJembatan && $existNameRuas) {
-                        $messages[] = 'gagal import, data tidak boleh sama';
-                        return;
-                    }
+                    // if ($noJembatan && $existNameRuas) {
+                    //     $messages[] = 'gagal import, data tidak boleh sama';
+                    //     return;
+                    // }
                     $selectKecamatan = Kecamatan::where('name', $item[1])->first();
                     if (!$selectKecamatan) {
                         $messages[] = 'Kecamatan dengan nama ' . $item[1] . ' tidak ditemukan';
@@ -78,9 +77,7 @@ class JembatanImport implements ToCollection
                     ]);
     
                 }
-                FacadesDB::commit();
             } catch (Exception $e) {
-                FacadesDB::rollBack();
                 $messages[] = 'Terjadi kesalahan saat memproses transaksi: ' . $e->getMessage();
             }
         }
