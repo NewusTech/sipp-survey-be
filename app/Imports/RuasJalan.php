@@ -51,7 +51,7 @@ class RuasJalan implements ToCollection
                     //     $messages[] = 'gagal import, data tidak boleh sama';
                     //     return;
                     // }
-                    $originName = trim($item[1]); // Remove leading/trailing whitespace
+                    $originName = trim($item[2]); // Remove leading/trailing whitespace
                     $lowercaseWord = strtolower($originName); // Convert to lowercase
                     $selectKecamatan = Kecamatan::whereRaw('LOWER(TRIM(name)) = ?', [$lowercaseWord])->first();
                     if (!$selectKecamatan) {
