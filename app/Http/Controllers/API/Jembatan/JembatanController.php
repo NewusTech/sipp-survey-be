@@ -308,6 +308,7 @@ class JembatanController extends Controller
             $data->kondisi_lantai       = $request->kondisi_lantai;
             $data->latitude             = $request->latitude;
             $data->longitude            = $request->longitude;
+            $data->no_ruas              = $request->no_ruas;
             $data->update();
 
             return response()->json([
