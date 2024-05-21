@@ -618,6 +618,7 @@ class LaporanController extends Controller
 
     public function number_format($angka)
     {
+        $angka = floatval($angka);
         $formatted_number = number_format($angka, 2);
 
         if (strpos($formatted_number, ".00") !== false) {
