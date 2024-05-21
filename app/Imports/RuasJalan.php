@@ -34,25 +34,26 @@ class RuasJalan implements ToCollection
             try {
                 foreach ($data as $key => $item) {
                     // check no_ruas
-                    $existRuas = ModelsRuasJalan::where('no_ruas', $item[0])->exists();
-                    if ($existRuas) {
-                        $messages[] = 'Data no_ruas sudah ada, no_ruas tidak boleh duplicate';
-                        return;
-                    }
+                    // $existRuas = ModelsRuasJalan::where('no_ruas', $item[0])->exists();
+                    // if ($existRuas) {
+                    //     $messages[] = 'Data no_ruas sudah ada, no_ruas tidak boleh duplicate';
+                    //     return;
+                    // }
     
                     // check nama ruas
-                    $existNameRuas = ModelsRuasJalan::where('nama', $item[1])->exists();
-                    if ($existNameRuas) {
-                        $messages[] = 'Data nama ruas sudah ada, nama ruas tidak boleh duplicate';
-                        return;
-                    }
+                    // $existNameRuas = ModelsRuasJalan::where('nama', $item[1])->exists();
+                    // if ($existNameRuas) {
+                    //     $messages[] = 'Data nama ruas sudah ada, nama ruas tidak boleh duplicate';
+                    //     return;
+                    // }
     
-                    if ($existRuas && $existNameRuas) {
-                        $messages[] = 'gagal import, data tidak boleh sama';
-                        return;
-                    }
-                    
-                    $selectKecamatan = Kecamatan::where('name', $item[2])->first();
+                    // if ($existRuas && $existNameRuas) {
+                    //     $messages[] = 'gagal import, data tidak boleh sama';
+                    //     return;
+                    // }
+                    $originName = trim($item[1]); // Remove leading/trailing whitespace
+                    $lowercaseWord = strtolower($originName); // Convert to lowercase
+                    $selectKecamatan = Kecamatan::whereRaw('LOWER(TRIM(name)) = ?', [$lowercaseWord])->first();
                     if (!$selectKecamatan) {
                         $messages[] = 'Kecamatan dengan nama ' . $item[2] . ' tidak ditemukan';
                         continue;
