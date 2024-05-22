@@ -73,6 +73,11 @@ class JembatanController extends Controller
                 $query->whereRaw('MONTH(jembatan.created_at) = ?', [$searchMonth]);
             }
 
+            if ($request->has('kecamatan_id') && $request->input('kecamatan_id')) {
+                $filterKecamatan = $request->input('kecamatan_id');
+                $query->where('jembatan.kecamatan_id', $filterKecamatan);
+            }
+
             $data = $query->paginate($paginate_count);
 
             $resdata = $data->getCollection()->map(function ($item) {
