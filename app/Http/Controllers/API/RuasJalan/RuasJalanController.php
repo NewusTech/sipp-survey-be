@@ -43,6 +43,13 @@ class RuasJalanController extends Controller
                     ->leftjoin('kecamatan','kecamatan.id','=', 'master_ruas_jalan.kecamatan')
                     ->latest();
 
+            if ($request->has('search') && $request->input('search')) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($query) use ($searchTerm) {
+                    $query->where('master_ruas_jalan.nama', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
             if ($request->has('year') && $request->input('year')) {
                 $tahun = $request->input('year');
                 $query->whereYear('master_ruas_jalan.created_at', $tahun);

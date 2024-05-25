@@ -125,6 +125,8 @@ Route::group([
     Route::resource('jembatan', JembatanController::class);
     Route::post('jembatan/update/{id}', [JembatanController::class, 'update']);
     Route::post('jembatan/export_byrow', [JembatanController::class, 'exportByRow']);
+    Route::get('statistic_jembatan', [JembatanController::class, 'statistic_jembatan']);
+    Route::get('detail_statistic_jembatan', [JembatanController::class, 'detail_statistic_jembatan']);
 });
 
 Route::group([

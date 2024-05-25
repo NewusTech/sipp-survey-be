@@ -73,6 +73,11 @@ class JembatanController extends Controller
                 $query->whereRaw('MONTH(jembatan.created_at) = ?', [$searchMonth]);
             }
 
+            if ($request->has('kecamatan_id') && $request->input('kecamatan_id')) {
+                $filterKecamatan = $request->input('kecamatan_id');
+                $query->where('jembatan.kecamatan_id', $filterKecamatan);
+            }
+
             $data = $query->paginate($paginate_count);
 
             $resdata = $data->getCollection()->map(function ($item) {
@@ -373,6 +378,271 @@ class JembatanController extends Controller
                 'message' => 'Survey exported successfully.',
                 'file' => $excelFileName,
                 'file_url' => url($fileUrl)
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function statistic_jembatan(Request $request)
+    {
+        try {
+            $query = Jembatan::select(
+                'jembatan.id',
+                'jembatan.no_ruas',
+                'jembatan.kecamatan_id',
+                'kecamatan.name as kecamatan_name',
+                'jembatan.nama_ruas',
+                'jembatan.no_jembatan',
+                'jembatan.asal',
+                'jembatan.nama_jembatan',
+                'jembatan.kmpost',
+                'jembatan.panjang',
+                'jembatan.lebar',
+                'jembatan.jml_bentang',
+                'jembatan.tipe_ba',
+                'jembatan.kondisi_ba',
+                'jembatan.tipe_bb',
+                'jembatan.kondisi_bb',
+                'jembatan.tipe_fondasi',
+                'jembatan.kondisi_fondasi',
+                'jembatan.bahan',
+                'jembatan.kondisi_lantai',
+                'jembatan.latitude',
+                'jembatan.longitude',
+                'jembatan.created_at',
+                'jembatan.tahun',
+            )->leftjoin('kecamatan', 'kecamatan.id', '=', 'jembatan.kecamatan_id')->latest();
+            if ($request->has('search') && $request->input('search')) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($query) use ($searchTerm) {
+                    $query->where('jembatan.nama_ruas', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('jembatan.nama_jembatan', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $query->where('jembatan.tahun', $tahun);
+            }
+
+            if ($request->has('month') && $request->input('month')) {
+                $searchMonth = $request->input('month');
+                $query->whereRaw('MONTH(jembatan.created_at) = ?', [$searchMonth]);
+            }
+
+            if ($request->has('kecamatan_id') && $request->input('kecamatan_id')) {
+                $filterKecamatan = $request->input('kecamatan_id');
+                $query->where('jembatan.kecamatan_id', $filterKecamatan);
+            }
+
+            $data = $query->cursor();
+
+            $kondisi_count = [
+                'B' => 0,
+                'S' => 0,
+                'RR' => 0,
+                'RB' => 0
+            ];
+
+            foreach ($data as $item) {
+                $nilai_kondisi = ((int) $item->kondisi_ba + (int) $item->kondisi_bb + (int) $item->kondisi_fondasi + (int) $item->kondisi_lantai) / 4;
+                $kondisi = "";
+                if ($nilai_kondisi <= 1) {
+                    $kondisi = "B";
+                } elseif ($nilai_kondisi <= 2) {
+                    $kondisi = "S";
+                } elseif ($nilai_kondisi <= 3) {
+                    $kondisi = "RR";
+                } else {
+                    $kondisi = "RB";
+                }
+
+                $kondisi_count[$kondisi]++;
+            }
+
+            $response = [
+                'kondisi_count' => $kondisi_count
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $response,
+                'message' => 'Berhasil get data'
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function detail_statistic_jembatan(Request $request)
+    {
+        try {
+            $query = Jembatan::select(
+                'jembatan.id',
+                'jembatan.no_ruas',
+                'jembatan.kecamatan_id',
+                'kecamatan.name as kecamatan_name',
+                'jembatan.nama_ruas',
+                'jembatan.no_jembatan',
+                'jembatan.asal',
+                'jembatan.nama_jembatan',
+                'jembatan.kmpost',
+                'jembatan.panjang',
+                'jembatan.lebar',
+                'jembatan.jml_bentang',
+                'jembatan.tipe_ba',
+                'jembatan.kondisi_ba',
+                'jembatan.tipe_bb',
+                'jembatan.kondisi_bb',
+                'jembatan.tipe_fondasi',
+                'jembatan.kondisi_fondasi',
+                'jembatan.bahan',
+                'jembatan.kondisi_lantai',
+                'jembatan.latitude',
+                'jembatan.longitude',
+                'jembatan.created_at',
+                'jembatan.tahun',
+            )->leftjoin('kecamatan', 'kecamatan.id', '=', 'jembatan.kecamatan_id')->latest();
+            if ($request->has('search') && $request->input('search')) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($query) use ($searchTerm) {
+                    $query->where('jembatan.nama_ruas', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('jembatan.nama_jembatan', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $query->where('jembatan.tahun', $tahun);
+            }
+
+            if ($request->has('month') && $request->input('month')) {
+                $searchMonth = $request->input('month');
+                $query->whereRaw('MONTH(jembatan.created_at) = ?', [$searchMonth]);
+            }
+
+            if ($request->has('kecamatan_id') && $request->input('kecamatan_id')) {
+                $filterKecamatan = $request->input('kecamatan_id');
+                $query->where('jembatan.kecamatan_id', $filterKecamatan);
+            }
+
+            $data = $query->cursor();
+
+            $kondisi_count = [
+                'B' => 0,
+                'S' => 0,
+                'RR' => 0,
+                'RB' => 0
+            ];
+            
+            $jembatan_berkondisi_B = [];
+            $jembatan_berkondisi_S = [];
+            $jembatan_berkondisi_RR = [];
+            $jembatan_berkondisi_RB = [];
+            foreach ($data as $item) {
+                $nilai_kondisi = ((int) $item->kondisi_ba + (int) $item->kondisi_bb + (int) $item->kondisi_fondasi + (int) $item->kondisi_lantai) / 4;
+                $kondisi = "";
+                if ($nilai_kondisi <= 1) {
+                    $kondisi = "B";
+                } elseif ($nilai_kondisi <= 2) {
+                    $kondisi = "S";
+                } elseif ($nilai_kondisi <= 3) {
+                    $kondisi = "RR";
+                } else {
+                    $kondisi = "RB";
+                }
+            
+                $kondisi_count[$kondisi]++;
+                // Tambahkan jembatan ke dalam array sesuai dengan kondisinya
+                switch ($kondisi) {
+                    case 'B':
+                        $jembatan_berkondisi_B[] = [
+                            'id' => $item->id,
+                            'no_ruas' => $item->no_ruas,
+                            'nama_ruas' => $item->nama_ruas,
+                            'nama_jembatan' => $item->nama_jembatan,
+                            'no_jembatan' => $item->no_jembatan,
+                            'panjang' => $item->panjang,
+                            'lebar' => $item->lebar,
+                            'kecamatan_name' => $item->kecamatan_name
+                        ];
+                        break;
+                    case 'S':
+                        $jembatan_berkondisi_S[] = [
+                            'id' => $item->id,
+                            'no_ruas' => $item->no_ruas,
+                            'nama_ruas' => $item->nama_ruas,
+                            'nama_jembatan' => $item->nama_jembatan,
+                            'no_jembatan' => $item->no_jembatan,
+                            'panjang' => $item->panjang,
+                            'lebar' => $item->lebar,
+                            'kecamatan_name' => $item->kecamatan_name
+                        ];
+                        break;
+                    case 'RR':
+                        $jembatan_berkondisi_RR[] = [
+                            'id' => $item->id,
+                            'no_ruas' => $item->no_ruas,
+                            'nama_ruas' => $item->nama_ruas,
+                            'nama_jembatan' => $item->nama_jembatan,
+                            'no_jembatan' => $item->no_jembatan,
+                            'panjang' => $item->panjang,
+                            'lebar' => $item->lebar,
+                            'kecamatan_name' => $item->kecamatan_name
+                        ];
+                        break;
+                    case 'RB':
+                        $jembatan_berkondisi_RB[] = [
+                            'id' => $item->id,
+                            'no_ruas' => $item->no_ruas,
+                            'nama_ruas' => $item->nama_ruas,
+                            'nama_jembatan' => $item->nama_jembatan,
+                            'no_jembatan' => $item->no_jembatan,
+                            'panjang' => $item->panjang,
+                            'lebar' => $item->lebar,
+                            'kecamatan_name' => $item->kecamatan_name
+                        ];
+                        break;
+                }
+            }
+            
+
+            $response = [
+                'jembatan_berkondisi_B' => $jembatan_berkondisi_B,
+                'jembatan_berkondisi_S' => $jembatan_berkondisi_S,
+                'jembatan_berkondisi_RR' => $jembatan_berkondisi_RR,
+                'jembatan_berkondisi_RB' => $jembatan_berkondisi_RB
+            ];
+            if ($request->kondisi == "B") {
+                $response = [
+                    'jembatan_berkondisi_B' => $jembatan_berkondisi_B
+                ];
+            }elseif ($request->kondisi == "S") {
+                $response = [
+                    'jembatan_berkondisi_S' => $jembatan_berkondisi_S,
+                ];
+            }elseif ($request->kondisi == "RR") {
+                $response = [
+                    'jembatan_berkondisi_RR' => $jembatan_berkondisi_RR
+                ];
+            }elseif ($request->kondisi == "RB") {
+                $response = [
+                    'jembatan_berkondisi_RB' => $jembatan_berkondisi_RB
+                ];
+            }else{
+                $response = [
+                    'jembatan_berkondisi_B' => $jembatan_berkondisi_B,
+                    'jembatan_berkondisi_S' => $jembatan_berkondisi_S,
+                    'jembatan_berkondisi_RR' => $jembatan_berkondisi_RR,
+                    'jembatan_berkondisi_RB' => $jembatan_berkondisi_RB
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $response,
+                'message' => 'Berhasil get data'
             ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

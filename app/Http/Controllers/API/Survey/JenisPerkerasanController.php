@@ -84,6 +84,11 @@ class JenisPerkerasanController extends Controller
                 $query->where('jenis_perkerasan.tahun', $tahun);
             }
 
+            if ($request->has('kecamatan_id') && $request->input('kecamatan_id')) {
+                $filterKecamatan = $request->input('kecamatan_id');
+                $query->where('master_ruas_jalan.kecamatan', $filterKecamatan);
+            }
+
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
             }   

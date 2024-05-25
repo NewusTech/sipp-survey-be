@@ -34,9 +34,13 @@ class DrainaseController extends Controller
             if ($request->has('search') && $request->input('search')) {
                 $searchTerm = $request->input('search');
                 $query->where(function ($query) use ($searchTerm) {
-                    $query->where('drainase.nama_ruas', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('jembatan.nama_jembatan', 'like', '%' . $searchTerm . '%');
+                    $query->where('drainase.nama_ruas', 'like', '%' . $searchTerm . '%');
                 });
+            }
+
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $query->whereYear('drainase.created_at', $tahun);
             }
 
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
