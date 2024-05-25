@@ -330,7 +330,9 @@ class RuasJalanController extends Controller
                 'master_ruas_jalan.nama',
                 'master_ruas_jalan.panjang_ruas',
                 'master_ruas_jalan.kabupaten',
-                'master_koridor.name as name_koridor'
+                'master_koridor.name as name_koridor',
+                'master_ruas_jalan.latitude',
+                'master_ruas_jalan.longitude'
             )->leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
             ->where('master_ruas_jalan.id', $id)
             ->get();
