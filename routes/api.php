@@ -176,6 +176,7 @@ Route::group([
     Route::post('survey_drainase/uplaod', [SurveyDrainaseController::class, 'upload_bukti_survey']);
     Route::get('export_drainase', [SurveyDrainaseController::class, 'export_drainase']);
     Route::get('detail_survey_drainase/{id}', [SurveyDrainaseController::class, 'detail_survey']);
+    Route::get('statistic_drainase', [SurveyDrainaseController::class, 'statistic_drainase']);
 });
 
 

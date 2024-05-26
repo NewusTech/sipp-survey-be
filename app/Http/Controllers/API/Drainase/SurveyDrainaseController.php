@@ -366,4 +366,33 @@ class SurveyDrainaseController extends Controller
 
         }
     }
+
+    public function statistic_drainase(Request $request)
+    {
+        try {
+            $data = SurveyDrainaseModel::select(
+                'survey_drainase.kondisi',
+                DB::raw('COUNT(*) as count')
+            );
+            
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $data->whereYear('survey_drainase.created_at', $tahun);
+            }
+            
+            $data = $data->groupBy('survey_drainase.kondisi')->get();
+            $kondisi_count = [];
+            foreach ($data as $item) {
+                $kondisi_count[$item->kondisi] = $item->count;
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $kondisi_count,
+                'message' => 'Berhasil menampilkan data'
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
