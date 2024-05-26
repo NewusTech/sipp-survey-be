@@ -262,6 +262,7 @@ class JenisPerkerasanController extends Controller
 
             $data = JenisPerkerasan::find($id);
 
+            $data->ruas_jalan_id = $request->ruas_jalan_id;
             $data->rigit = $request->rigit;
             $data->hotmix = $request->hotmix;
             $data->lapen = $request->lapen;

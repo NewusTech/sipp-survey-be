@@ -195,16 +195,22 @@ class LaporanController extends Controller
             )->groupBy('jenis_perkerasan.id', 'jenis_perkerasan.created_at')
             ->latest();
 
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $jenis_perkerasan->whereYear('jenis_perkerasan.created_at', $tahun);
+            }
             $jenis_perkerasan = $jenis_perkerasan->first();
+            if ($jenis_perkerasan) {
+                $hotmix_count = $jenis_perkerasan->hotmix_count;
+                $rigit_count = $jenis_perkerasan->rigit_count;
+                $lapen_count = $jenis_perkerasan->lapen_count;
+                $telford_count = $jenis_perkerasan->telford_count;
+                $tanah_count = $jenis_perkerasan->tanah_count;
+    
+                $data = $hotmix_count + $rigit_count + $lapen_count + $telford_count + $tanah_count;
+                $jenis_perkerasan['total'] = $data;
+            }
 
-            $hotmix_count = $jenis_perkerasan->hotmix_count;
-            $rigit_count = $jenis_perkerasan->rigit_count;
-            $lapen_count = $jenis_perkerasan->lapen_count;
-            $telford_count = $jenis_perkerasan->telford_count;
-            $tanah_count = $jenis_perkerasan->tanah_count;
-
-            $data = $hotmix_count + $rigit_count + $lapen_count + $telford_count + $tanah_count;
-            $jenis_perkerasan['total'] = $data;
 
             return response()->json([
                 'success' => true,
@@ -216,7 +222,7 @@ class LaporanController extends Controller
         }
     }
 
-    public function kondisi_perkerasan()
+    public function kondisi_perkerasan(Request $request)
     {
         try {
             $jenis_perkerasan = JenisPerkerasan::select(
@@ -231,6 +237,11 @@ class LaporanController extends Controller
                 ->groupBy('jenis_perkerasan.id', 'jenis_perkerasan.created_at')
                 ->leftjoin('master_ruas_jalan', 'master_ruas_jalan.id', '=', 'jenis_perkerasan.ruas_jalan_id')
                 ->latest();
+            
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $jenis_perkerasan->whereYear('jenis_perkerasan.created_at', $tahun);
+            }
 
             $jenis_perkerasan = $jenis_perkerasan->get();
             $baik_count         = 0;
@@ -238,31 +249,45 @@ class LaporanController extends Controller
             $rusak_ringan_count = 0;
             $rusak_berat_count  = 0;
             $panjang_ruas_count  = 0;
-            foreach ($jenis_perkerasan as $key => $item) {
-                $baik_count += $item->baik_count;
-                $sedang_count += $item->sedang_count;
-                $rusak_ringan_count += $item->rusak_ringan_count;
-                $rusak_berat_count += $item->rusak_berat_count;
-                $panjang_ruas_count  += $item->panjang_ruas_count;
+
+            if ($jenis_perkerasan) {
+                foreach ($jenis_perkerasan as $key => $item) {
+                    $baik_count += $item->baik_count;
+                    $sedang_count += $item->sedang_count;
+                    $rusak_ringan_count += $item->rusak_ringan_count;
+                    $rusak_berat_count += $item->rusak_berat_count;
+                    $panjang_ruas_count  += $item->panjang_ruas_count;
+                }
             }
             $data = $baik_count + $sedang_count + $rusak_ringan_count + $rusak_berat_count;
-
-            $baik_percentage = ($baik_count / $data) * 100;
-            $sedang_percentage = ($sedang_count / $data) * 100;
-            $rusak_ringan_percentage = ($rusak_ringan_count / $data) * 100;
-            $rusak_berat_percentage = ($rusak_berat_count / $data) * 100;
-            //kemantapan
-            $mantap_percentage = ($baik_count + $sedang_count) / $panjang_ruas_count * 100;
-            $tmantap_percentage = ($rusak_ringan_count + $rusak_berat_count) / $panjang_ruas_count * 100;
-
-            $resp['baik_percentage'] = $baik_percentage ? round($baik_percentage, 3) : "";
-            $resp['sedang_percentage'] = $sedang_percentage ? round($sedang_percentage, 3) : "";
-            $resp['rusak_ringan_percentage'] = $rusak_ringan_percentage ? round($rusak_ringan_percentage, 3) : "";
-            $resp['rusak_berat_percentage'] = $rusak_berat_percentage ? round($rusak_berat_percentage, 3) : "";
-            $resp['total'] = $data ? round($data, 3) : "";
-
-            $resp['mantap'] = round($mantap_percentage, 3);
-            $resp['tmantap'] = round($tmantap_percentage, 3);
+            if ($data > 0) {
+                $baik_percentage = ($baik_count / $data) * 100;
+                $sedang_percentage = ($sedang_count / $data) * 100;
+                $rusak_ringan_percentage = ($rusak_ringan_count / $data) * 100;
+                $rusak_berat_percentage = ($rusak_berat_count / $data) * 100;
+                
+                //kemantapan
+                $mantap_percentage = ($baik_count + $sedang_count) / $panjang_ruas_count * 100;
+                $tmantap_percentage = ($rusak_ringan_count + $rusak_berat_count) / $panjang_ruas_count * 100;
+    
+                $resp['baik_percentage'] = $baik_percentage ? round($baik_percentage, 3) : "";
+                $resp['sedang_percentage'] = $sedang_percentage ? round($sedang_percentage, 3) : "";
+                $resp['rusak_ringan_percentage'] = $rusak_ringan_percentage ? round($rusak_ringan_percentage, 3) : "";
+                $resp['rusak_berat_percentage'] = $rusak_berat_percentage ? round($rusak_berat_percentage, 3) : "";
+                $resp['total'] = $data ? round($data, 3) : "";
+    
+                $resp['mantap'] = round($mantap_percentage, 3);
+                $resp['tmantap'] = round($tmantap_percentage, 3);
+            }else{
+                $resp['baik_percentage'] = 0;
+                $resp['sedang_percentage'] = 0;
+                $resp['rusak_ringan_percentage'] = 0;
+                $resp['rusak_berat_percentage'] = 0;
+                $resp['total'] = 0;
+    
+                $resp['mantap'] = 0;
+                $resp['tmantap'] = 0;
+            }
 
             return response()->json([
                 'success' => true,

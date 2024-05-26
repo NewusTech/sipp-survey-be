@@ -401,4 +401,49 @@ class SurveyDrainaseController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    public function detail_statistic_drainase(Request $request)
+    {
+        try {
+            $reqKondisi = $request->kondisi;
+            $paginate_count = 10;
+            $data = SurveyDrainaseModel::select(
+                'survey_drainase.id',
+                'drainase.nama_ruas',
+                'drainase.panjang_ruas',
+                'drainase.desa_id',
+                'master_desa.nama as nama_desa',
+                'survey_drainase.panjang_drainase',
+                'survey_drainase.letak_drainase',
+                'survey_drainase.lebar_atas',
+                'survey_drainase.lebar_bawah',
+                'survey_drainase.tinggi',
+                'survey_drainase.kondisi',
+                'survey_drainase.latitude',
+                'survey_drainase.longitude',
+                'survey_drainase.created_at',
+                'kecamatan.name as nama_kecamatan'
+            )
+            ->leftjoin('drainase','drainase.id','=','survey_drainase.ruas_drainase_id')
+            ->leftjoin('master_desa','master_desa.id','=','drainase.desa_id')
+            ->leftjoin('kecamatan','kecamatan.id','=','master_desa.kecamatan_id')
+            ->where('survey_drainase.kondisi', $reqKondisi)
+            ->latest();
+
+            if ($request->has('paginate_count') && $request->input('paginate_count')) {
+                $paginate_count = $request->input('paginate_count');
+            }
+
+            $data = $data->paginate($paginate_count);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Berhasil menampilkan data'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
