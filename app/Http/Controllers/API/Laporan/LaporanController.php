@@ -195,16 +195,22 @@ class LaporanController extends Controller
             )->groupBy('jenis_perkerasan.id', 'jenis_perkerasan.created_at')
             ->latest();
 
+            if ($request->has('year') && $request->input('year')) {
+                $tahun = $request->input('year');
+                $jenis_perkerasan->whereYear('jenis_perkerasan.created_at', $tahun);
+            }
             $jenis_perkerasan = $jenis_perkerasan->first();
+            if ($jenis_perkerasan) {
+                $hotmix_count = $jenis_perkerasan->hotmix_count;
+                $rigit_count = $jenis_perkerasan->rigit_count;
+                $lapen_count = $jenis_perkerasan->lapen_count;
+                $telford_count = $jenis_perkerasan->telford_count;
+                $tanah_count = $jenis_perkerasan->tanah_count;
+    
+                $data = $hotmix_count + $rigit_count + $lapen_count + $telford_count + $tanah_count;
+                $jenis_perkerasan['total'] = $data;
+            }
 
-            $hotmix_count = $jenis_perkerasan->hotmix_count;
-            $rigit_count = $jenis_perkerasan->rigit_count;
-            $lapen_count = $jenis_perkerasan->lapen_count;
-            $telford_count = $jenis_perkerasan->telford_count;
-            $tanah_count = $jenis_perkerasan->tanah_count;
-
-            $data = $hotmix_count + $rigit_count + $lapen_count + $telford_count + $tanah_count;
-            $jenis_perkerasan['total'] = $data;
 
             return response()->json([
                 'success' => true,
