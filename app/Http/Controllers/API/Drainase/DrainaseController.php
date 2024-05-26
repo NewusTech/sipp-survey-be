@@ -43,6 +43,11 @@ class DrainaseController extends Controller
                 $query->whereYear('drainase.created_at', $tahun);
             }
 
+            if ($request->has('kecamatan_id') && $request->input('kecamatan_id')) {
+                $kecamatan_id = $request->input('kecamatan_id');
+                $query->where('master_desa.kecamatan_id', $kecamatan_id);
+            }
+
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
             }

@@ -95,6 +95,8 @@ class JenisPerkerasanController extends Controller
 
             $data = $query->paginate($paginate_count);
             $resData = $data->getCollection()->map(function ($query) {
+                $mantap = number_format((($query->baik + $query->sedang) / $query->panjang_ruas) * 100, 3);
+                $tmantap = number_format((($query->rusak_ringan + $query->rusak_berat) / $query->panjang_ruas) * 100, 3);
                 return [
                     "id" => $query->id,
                     "ruas_jalan_id" => $query->ruas_jalan_id,
@@ -118,7 +120,9 @@ class JenisPerkerasanController extends Controller
                     "created_at" => $query->created_at,
                     "name_kecamatan" =>$query->name_kecamatan,
                     "lhr" =>$query->lhr,
-                    "keterangan" =>$query->keterangan
+                    "keterangan" =>$query->keterangan,
+                    "mantap"            => $mantap, // ((baik+sedang)/panjang_ruas) * 100)
+                    "tmantap"           => $tmantap, //  ((rusak_ringan+rusak_berat) * 100)
                 ];
             });
 
