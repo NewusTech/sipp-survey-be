@@ -135,6 +135,21 @@ class SurveyDrainaseController extends Controller
             
 
             $total_panjang_ruas = DrainaseModel::select(DB::raw('SUM(drainase.panjang_ruas) as total_panjang_ruas'));
+            if ($request->has('search') && $request->input('search')) {
+                $valSearch = $request->input('search');
+                $data->where(function ($query) use ($valSearch) {
+                    $query->where('drainase.nama_ruas', 'like', '%' . $valSearch . '%')
+                    ->orWhere('master_desa.nama', 'like', '%' . $valSearch . '%')
+                    ->orWhere('kecamatan.name', 'like', '%' . $valSearch . '%');
+                });
+
+            }
+
+            if ($request->has('month') && $request->input('month')) {
+                $searchMonth = $request->input('month');
+                $data->whereRaw('MONTH(survey_drainase.created_at) = ?', [$searchMonth]);
+            }
+            
             if ($request->has('desa_id') && $request->input('desa_id')) {
                 $searchTerm = $request->input('desa_id');
                 $data->where(function ($query) use ($searchTerm) {
