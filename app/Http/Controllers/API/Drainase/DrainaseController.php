@@ -79,13 +79,13 @@ class DrainaseController extends Controller
     public function store(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'nama_ruas' => 'required|unique:drainase'
-            ]);
+            // $validator = Validator::make($request->all(), [
+            //     'nama_ruas' => 'required|unique:drainase'
+            // ]);
 
-            if ($validator->fails()) {
-                return response()->json(['error' => $validator->errors()->first()], 500);
-            }
+            // if ($validator->fails()) {
+            //     return response()->json(['error' => $validator->errors()->first()], 500);
+            // }
 
             $data = new DrainaseModel();
             $data->nama_ruas              = $request->nama_ruas;
