@@ -34,7 +34,8 @@ class DrainaseController extends Controller
             if ($request->has('search') && $request->input('search')) {
                 $searchTerm = $request->input('search');
                 $query->where(function ($query) use ($searchTerm) {
-                    $query->where('drainase.nama_ruas', 'like', '%' . $searchTerm . '%');
+                    $query->where('drainase.nama_ruas', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('master_desa.nama', 'like', '%' . $searchTerm . '%');
                 });
             }
 
@@ -47,6 +48,11 @@ class DrainaseController extends Controller
                 $kecamatan_id = $request->input('kecamatan_id');
                 $query->where('master_desa.kecamatan_id', $kecamatan_id);
             }
+
+            if ($request->has('desa_id') && $request->input('desa_id')) {
+                $desa_id = $request->input('desa_id');
+                $query->where('drainase.desa_id', $desa_id);
+            }            
 
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
