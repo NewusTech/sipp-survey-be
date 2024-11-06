@@ -17,6 +17,8 @@ class SurveyDrainaseModel extends Model
         'lebar_bawah',
         'tinggi',
         'kondisi',
+        'status',
+        'keterangan',
         'latitude',
         'longitude'
     ];

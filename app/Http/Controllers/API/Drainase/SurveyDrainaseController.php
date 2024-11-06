@@ -34,9 +34,9 @@ class SurveyDrainaseController extends Controller
                 'master_desa.nama as nama_desa',
                 'kecamatan.name as nama_kecamatan',
                 DB::raw('SUM(drainase.panjang_ruas) as total_panjang_ruas')
-            )->leftjoin('drainase','drainase.desa_id','=','master_desa.id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_desa.kecamatan_id')
-            ->groupBy('master_desa.id','master_desa.nama','kecamatan.name');
+            )->leftjoin('drainase', 'drainase.desa_id', '=', 'master_desa.id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_desa.kecamatan_id')
+                ->groupBy('master_desa.id', 'master_desa.nama', 'kecamatan.name');
 
             if ($request->has('search') && $request->input('search')) {
                 $searchTerm = $request->input('search');
@@ -122,41 +122,42 @@ class SurveyDrainaseController extends Controller
                 'survey_drainase.lebar_bawah',
                 'survey_drainase.tinggi',
                 'survey_drainase.kondisi',
+                'survey_drainase.status',
+                'survey_drainase.keterangan',
                 'survey_drainase.latitude',
                 'survey_drainase.longitude',
                 'survey_drainase.created_at',
                 'kecamatan.name as nama_kecamatan'
             )
-            ->leftjoin('drainase','drainase.id','=','survey_drainase.ruas_drainase_id')
-            ->leftjoin('master_desa','master_desa.id','=','drainase.desa_id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_desa.kecamatan_id')
-            ->where('drainase.desa_id', $desa_id);
+                ->leftjoin('drainase', 'drainase.id', '=', 'survey_drainase.ruas_drainase_id')
+                ->leftjoin('master_desa', 'master_desa.id', '=', 'drainase.desa_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_desa.kecamatan_id')
+                ->where('drainase.desa_id', $desa_id);
             // ->where('survey_drainase.ruas_drainase_id', $id_ruas_drainase)
-            
+
 
             $total_panjang_ruas = DrainaseModel::select(DB::raw('SUM(drainase.panjang_ruas) as total_panjang_ruas'));
             if ($request->has('search') && $request->input('search')) {
                 $valSearch = $request->input('search');
                 $data->where(function ($query) use ($valSearch) {
                     $query->where('drainase.nama_ruas', 'like', '%' . $valSearch . '%')
-                    ->orWhere('master_desa.nama', 'like', '%' . $valSearch . '%')
-                    ->orWhere('kecamatan.name', 'like', '%' . $valSearch . '%');
+                        ->orWhere('master_desa.nama', 'like', '%' . $valSearch . '%')
+                        ->orWhere('kecamatan.name', 'like', '%' . $valSearch . '%');
                 });
-
             }
 
             if ($request->has('month') && $request->input('month')) {
                 $searchMonth = $request->input('month');
                 $data->whereRaw('MONTH(survey_drainase.created_at) = ?', [$searchMonth]);
             }
-            
+
             if ($request->has('desa_id') && $request->input('desa_id')) {
                 $searchTerm = $request->input('desa_id');
                 $data->where(function ($query) use ($searchTerm) {
                     $query->where('drainase.desa_id',  $searchTerm);
                 });
-            }       
-            
+            }
+
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
             }
@@ -173,7 +174,7 @@ class SurveyDrainaseController extends Controller
                 ->first();
             $data_total_panjang_ruas = '';
             $data_total_panjang_drainase = '';
-            $data_total_panjang_drainase_kondisi_tanah ='';
+            $data_total_panjang_drainase_kondisi_tanah = '';
             if ($total_panjang_drainase) {
                 if ($total_panjang_drainase->total_panjang_drainase) {
                     $total_panjang = $total_panjang_drainase->total_panjang_drainase;
@@ -189,15 +190,14 @@ class SurveyDrainaseController extends Controller
                 'success' => true,
                 'data' => $data,
                 'data_total' => [
-                            'total_panjang_ruas' => $data_total_panjang_ruas, 
-                            'total_panjang_drainase' => $data_total_panjang_drainase, 
-                            'total_panjang_drainase_kondisi_tanah' => $data_total_panjang_drainase_kondisi_tanah
-                        ],
+                    'total_panjang_ruas' => $data_total_panjang_ruas,
+                    'total_panjang_drainase' => $data_total_panjang_drainase,
+                    'total_panjang_drainase_kondisi_tanah' => $data_total_panjang_drainase_kondisi_tanah
+                ],
                 'message' => 'Berhasil menampilkan data'
             ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
-
         }
     }
 
@@ -231,6 +231,8 @@ class SurveyDrainaseController extends Controller
             $data->lebar_bawah = $request->lebar_bawah;
             $data->tinggi = $request->tinggi;
             $data->kondisi = $request->kondisi;
+            $data->status = $request->status;
+            $data->keterangan = $request->keterangan;
             $data->latitude = $request->latitude;
             $data->longitude = $request->longitude;
             $data->update();
@@ -282,7 +284,7 @@ class SurveyDrainaseController extends Controller
             ]);
 
             if ($validator->fails()) {
-                 return response()->json(['error' => $validator->errors()->first()], 500);
+                return response()->json(['error' => $validator->errors()->first()], 500);
             }
 
             $data = new SurveyDrainasePhoto();
@@ -291,9 +293,9 @@ class SurveyDrainaseController extends Controller
             if ($request->hasFile('photo')) {
                 $image = $request->file('photo');
                 $imageName = $image->getClientOriginalName();
-                Storage::putFileAs('public/survey_drainase', $image, 'des-'.$request->desa_id.$imageName);
-                $imageName = str_replace(" ","", 'des-'.$request->desa_id.$imageName);
-                $data->photo = '/survey_drainase/'.strtolower($imageName);
+                Storage::putFileAs('public/survey_drainase', $image, 'des-' . $request->desa_id . $imageName);
+                $imageName = str_replace(" ", "", 'des-' . $request->desa_id . $imageName);
+                $data->photo = '/survey_drainase/' . strtolower($imageName);
             }
             $data->save();
             return response()->json([
@@ -319,7 +321,7 @@ class SurveyDrainaseController extends Controller
             $storagePath = 'public/exports';
             Storage::putFileAs($storagePath, $filePath, $excelFileName);
             $fileUrl = Storage::url($storagePath . '/' . $excelFileName);
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Survey exported successfully.',
@@ -346,15 +348,17 @@ class SurveyDrainaseController extends Controller
                 'survey_drainase.lebar_bawah',
                 'survey_drainase.tinggi',
                 'survey_drainase.kondisi',
+                'survey_drainase.status',
+                'survey_drainase.keterangan',
                 'survey_drainase.latitude',
                 'survey_drainase.longitude',
                 'survey_drainase.created_at',
                 'kecamatan.name as nama_kecamatan'
             )
-            ->leftjoin('drainase','drainase.id','=','survey_drainase.ruas_drainase_id')
-            ->leftjoin('master_desa','master_desa.id','=','drainase.desa_id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_desa.kecamatan_id')
-            ->find($id);
+                ->leftjoin('drainase', 'drainase.id', '=', 'survey_drainase.ruas_drainase_id')
+                ->leftjoin('master_desa', 'master_desa.id', '=', 'drainase.desa_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_desa.kecamatan_id')
+                ->find($id);
 
             return response()->json([
                 'success' => true,
@@ -363,7 +367,33 @@ class SurveyDrainaseController extends Controller
             ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
+    public function verify(Request $request, string $id)
+    {
+        try {
+            $where = ['id' => $id];
+            $collection = SurveyDrainaseModel::where($where)->first();
+            if (!$collection) {
+                return response()->json([
+                    'success' => false,
+                    'data' => '',
+                    'message' => 'ID tidak ditemukan'
+                ]);
+            }
+            $data = SurveyDrainaseModel::find($id);
+            $data->status = $request->status;
+            $data->keterangan = $request->keterangan;
+            $data->update();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Berhasil Verifikasi data'
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -373,12 +403,11 @@ class SurveyDrainaseController extends Controller
             if ($request->has('year') && $request->input('year')) {
                 $tahun = $request->input('year');
                 $counts = SurveyDrainaseModel::select('kondisi')
-                        ->whereYear('created_at', $tahun)
-                        ->groupBy('kondisi')
-                        ->selectRaw('kondisi, COUNT(*) as count')
-                        ->pluck('count', 'kondisi');
-
-            }else{
+                    ->whereYear('created_at', $tahun)
+                    ->groupBy('kondisi')
+                    ->selectRaw('kondisi, COUNT(*) as count')
+                    ->pluck('count', 'kondisi');
+            } else {
                 $counts = SurveyDrainaseModel::select('kondisi')
                     ->groupBy('kondisi')
                     ->selectRaw('kondisi, COUNT(*) as count')
@@ -391,7 +420,7 @@ class SurveyDrainaseController extends Controller
             foreach ($all_conditions as $condition) {
                 $results[$condition] = $counts->get($condition, 0);
             }
-             
+
             return response()->json([
                 'success' => true,
                 'data' => $results,
@@ -419,16 +448,18 @@ class SurveyDrainaseController extends Controller
                 'survey_drainase.lebar_bawah',
                 'survey_drainase.tinggi',
                 'survey_drainase.kondisi',
+                'survey_drainase.status',
+                'survey_drainase.keterangan',
                 'survey_drainase.latitude',
                 'survey_drainase.longitude',
                 'survey_drainase.created_at',
                 'kecamatan.name as nama_kecamatan'
             )
-            ->leftjoin('drainase','drainase.id','=','survey_drainase.ruas_drainase_id')
-            ->leftjoin('master_desa','master_desa.id','=','drainase.desa_id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_desa.kecamatan_id')
-            ->where('survey_drainase.kondisi', $reqKondisi)
-            ->latest();
+                ->leftjoin('drainase', 'drainase.id', '=', 'survey_drainase.ruas_drainase_id')
+                ->leftjoin('master_desa', 'master_desa.id', '=', 'drainase.desa_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_desa.kecamatan_id')
+                ->where('survey_drainase.kondisi', $reqKondisi)
+                ->latest();
 
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
@@ -441,7 +472,6 @@ class SurveyDrainaseController extends Controller
                 'data' => $data,
                 'message' => 'Berhasil menampilkan data'
             ]);
-
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
