@@ -99,7 +99,6 @@ Route::group([
     Route::get('statistik/sedang', [LaporanController::class, 'getsedang']);
     Route::get('statistik/rusak_ringan', [LaporanController::class, 'getrusak_ringan']);
     Route::get('statistik/rusak_berat', [LaporanController::class, 'getrusak_berat']);
-    
 });
 
 Route::group([
@@ -173,14 +172,10 @@ Route::group([
 ], function () {
     Route::resource('survey_drainase', SurveyDrainaseController::class);
     Route::get('survey_drainase/detail', [SurveyDrainaseController::class, 'show']);
+    Route::put('survey_drainase/verify/{id}', [SurveyDrainaseController::class, 'verify']);
     Route::post('survey_drainase/uplaod', [SurveyDrainaseController::class, 'upload_bukti_survey']);
     Route::get('export_drainase', [SurveyDrainaseController::class, 'export_drainase']);
     Route::get('detail_survey_drainase/{id}', [SurveyDrainaseController::class, 'detail_survey']);
     Route::get('statistic_drainase', [SurveyDrainaseController::class, 'statistic_drainase']);
     Route::get('detail_statistic_drainase', [SurveyDrainaseController::class, 'detail_statistic_drainase']);
 });
-
-
-
-
-
