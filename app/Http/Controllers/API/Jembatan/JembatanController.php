@@ -48,6 +48,8 @@ class JembatanController extends Controller
                 'jembatan.kondisi_lantai',
                 'jembatan.latitude',
                 'jembatan.longitude',
+                'jembatan.status',
+                'jembatan.keterangan',
                 'jembatan.created_at',
                 'jembatan.tahun',
             )->leftjoin('kecamatan', 'kecamatan.id', '=', 'jembatan.kecamatan_id')->latest();
@@ -115,6 +117,8 @@ class JembatanController extends Controller
                     'kondisi_lantai'   => $item->kondisi_lantai,
                     'latitude'         => $item->latitude,
                     'longitude'        => $item->longitude,
+                    'status'           => $item->status,
+                    'keterangan'       => $item->keterangan,
                     'nilai_kondisi'    => $nilai_kondisi,
                     'kondisi'          => $kondisi,
                     'tahun'            => $item->tahun,
@@ -232,10 +236,12 @@ class JembatanController extends Controller
                 'jembatan.kondisi_lantai',
                 'jembatan.latitude',
                 'jembatan.longitude',
+                'jembatan.status',
+                'jembatan.keterangan',
                 'jembatan.created_at',
                 'jembatan.tahun'
             )->leftjoin('kecamatan', 'kecamatan.id', '=', 'jembatan.kecamatan_id')
-            ->find($id);
+                ->find($id);
             if (!$data) {
                 return response()->json([
                     'success' => false,
@@ -275,6 +281,54 @@ class JembatanController extends Controller
     {
         //
     }
+
+    /**
+     * Verify the specified Jembatan.
+     */
+    /**
+     * Verify the specified Jembatan and update its status.
+     */
+    public function verify(Request $request, string $id)
+    {
+        try {
+            // Validate the request parameters (status and keterangan)
+            $validated = $request->validate([
+                'status' => 'required|string|max:255', // Status is required
+                'keterangan' => 'nullable|string|max:500', // keterangan is optional
+            ]);
+
+            // Find the Jembatan record with the provided ID
+            $data = Jembatan::find($id);
+
+            if (!$data) {
+                // If the Jembatan is not found, return a not found error
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jembatan not found',
+                ], 404);
+            }
+
+            // Update the status and keterangan fields
+            $data->status = $validated['status'];
+            $data->keterangan = $validated['keterangan'] ?? null; // If keterangan is not provided, set it to null
+
+            // Save the updated record without touching other fields
+            $data->save();
+
+            // Return a success response
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Jembatan successfully verified',
+            ]);
+        } catch (Exception $e) {
+            // Catch any errors and return a generic error message
+            return response()->json([
+                'error' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -372,7 +426,7 @@ class JembatanController extends Controller
             $storagePath = 'public/exports';
             Storage::putFileAs($storagePath, $filePath, $excelFileName);
             $fileUrl = Storage::url($storagePath . '/' . $excelFileName);
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Survey exported successfully.',
@@ -535,7 +589,7 @@ class JembatanController extends Controller
                 'RR' => 0,
                 'RB' => 0
             ];
-            
+
             $jembatan_berkondisi_B = [];
             $jembatan_berkondisi_S = [];
             $jembatan_berkondisi_RR = [];
@@ -552,7 +606,7 @@ class JembatanController extends Controller
                 } else {
                     $kondisi = "RB";
                 }
-            
+
                 $kondisi_count[$kondisi]++;
                 // Tambahkan jembatan ke dalam array sesuai dengan kondisinya
                 switch ($kondisi) {
@@ -606,7 +660,7 @@ class JembatanController extends Controller
                         break;
                 }
             }
-            
+
 
             $response = [
                 'jembatan_berkondisi_B' => $jembatan_berkondisi_B,
@@ -618,19 +672,19 @@ class JembatanController extends Controller
                 $response = [
                     'jembatan_berkondisi_B' => $jembatan_berkondisi_B
                 ];
-            }elseif ($request->kondisi == "S") {
+            } elseif ($request->kondisi == "S") {
                 $response = [
                     'jembatan_berkondisi_S' => $jembatan_berkondisi_S,
                 ];
-            }elseif ($request->kondisi == "RR") {
+            } elseif ($request->kondisi == "RR") {
                 $response = [
                     'jembatan_berkondisi_RR' => $jembatan_berkondisi_RR
                 ];
-            }elseif ($request->kondisi == "RB") {
+            } elseif ($request->kondisi == "RB") {
                 $response = [
                     'jembatan_berkondisi_RB' => $jembatan_berkondisi_RB
                 ];
-            }else{
+            } else {
                 $response = [
                     'jembatan_berkondisi_B' => $jembatan_berkondisi_B,
                     'jembatan_berkondisi_S' => $jembatan_berkondisi_S,

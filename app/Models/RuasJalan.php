@@ -21,6 +21,8 @@ class RuasJalan extends Model
         'desa',
         'latitude',
         'longitude',
+        'status',
+        'alasan',
         'created_by',
         'lebar'
     ];

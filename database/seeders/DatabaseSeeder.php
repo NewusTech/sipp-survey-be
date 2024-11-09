@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
-use App\Models\MasterCabang;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -29,19 +26,38 @@ class DatabaseSeeder extends Seeder
             Permission::create(['name' => $permission]);
         }
 
-        // Create admin User and assign the role to him.
-        $user = User::create([
-            'nama' => 'admin',
+        $adminRole = Role::create(['name' => 'Admin']);
+        $surveyorRole = Role::create(['name' => 'Surveyor']);
+        $verifikatorRole = Role::create(['name' => 'Verifikator']);
+
+        $allPermissions = Permission::pluck('id', 'id')->all();
+        $adminRole->syncPermissions($allPermissions);
+
+        $surveyorPermissions = Permission::whereIn('name', ['create', 'read'])->pluck('id')->all();
+        $surveyorRole->syncPermissions($surveyorPermissions);
+
+        $verifikatorPermissions = Permission::whereIn('name', ['update', 'read'])->pluck('id')->all();
+        $verifikatorRole->syncPermissions($verifikatorPermissions);
+
+        $superAdminUser = User::create([
+            'nama' => 'Admin',
             'email' => 'admin@mailinator.com',
             'password' => Hash::make('password')
         ]);
+        $superAdminUser->assignRole($adminRole);
 
-        $role = Role::create(['name' => 'Admin']);
+        $surveyorUser = User::create([
+            'nama' => 'Surveyor',
+            'email' => 'surveyor@mailinator.com',
+            'password' => Hash::make('password')
+        ]);
+        $surveyorUser->assignRole($surveyorRole);
 
-        $permissions = Permission::pluck('id', 'id')->all();
-
-        $role->syncPermissions($permissions);
-
-        $user->assignRole([$role->id]);
+        $verifikatorUser = User::create([
+            'nama' => 'Verifikator',
+            'email' => 'verifikator@mailinator.com',
+            'password' => Hash::make('password')
+        ]);
+        $verifikatorUser->assignRole($verifikatorRole);
     }
 }
