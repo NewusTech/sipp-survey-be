@@ -29,35 +29,37 @@ class JenisPerkerasanController extends Controller
     {
         try {
             $paginate_count = 10;
-            $query = JenisPerkerasan::leftjoin('master_ruas_jalan','master_ruas_jalan.id','=','jenis_perkerasan.ruas_jalan_id')
-            ->leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_ruas_jalan.kecamatan')
-            ->select(
-                'jenis_perkerasan.id',
-                'jenis_perkerasan.ruas_jalan_id',
-                'master_ruas_jalan.nama as nama_ruas',
-                'master_koridor.id as id_koridor',
-                'master_koridor.name as nama_koridor',
-                'master_ruas_jalan.panjang_ruas',
-                'master_ruas_jalan.no_ruas',
-                'master_ruas_jalan.lebar',
-                'master_ruas_jalan.akses',
-                'jenis_perkerasan.rigit',
-                'jenis_perkerasan.hotmix',
-                'jenis_perkerasan.lapen',
-                'jenis_perkerasan.telford',
-                'jenis_perkerasan.tanah',
-                'jenis_perkerasan.tahun',
-                'jenis_perkerasan.baik',
-                'jenis_perkerasan.sedang',
-                'jenis_perkerasan.rusak_ringan',
-                'jenis_perkerasan.rusak_berat',
-                'jenis_perkerasan.created_at',
-                'kecamatan.name as name_kecamatan',
-                'jenis_perkerasan.lhr',
-                'jenis_perkerasan.keterangan'
-            )
-            ->latest();
+            $query = JenisPerkerasan::leftjoin('master_ruas_jalan', 'master_ruas_jalan.id', '=', 'jenis_perkerasan.ruas_jalan_id')
+                ->leftjoin('master_koridor', 'master_koridor.id', '=', 'master_ruas_jalan.koridor_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_ruas_jalan.kecamatan')
+                ->select(
+                    'jenis_perkerasan.id',
+                    'jenis_perkerasan.ruas_jalan_id',
+                    'master_ruas_jalan.nama as nama_ruas',
+                    'master_koridor.id as id_koridor',
+                    'master_koridor.name as nama_koridor',
+                    'master_ruas_jalan.panjang_ruas',
+                    'master_ruas_jalan.no_ruas',
+                    'master_ruas_jalan.lebar',
+                    'master_ruas_jalan.akses',
+                    'master_ruas_jalan.status',
+                    'master_ruas_jalan.alasan',
+                    'jenis_perkerasan.rigit',
+                    'jenis_perkerasan.hotmix',
+                    'jenis_perkerasan.lapen',
+                    'jenis_perkerasan.telford',
+                    'jenis_perkerasan.tanah',
+                    'jenis_perkerasan.tahun',
+                    'jenis_perkerasan.baik',
+                    'jenis_perkerasan.sedang',
+                    'jenis_perkerasan.rusak_ringan',
+                    'jenis_perkerasan.rusak_berat',
+                    'jenis_perkerasan.created_at',
+                    'kecamatan.name as name_kecamatan',
+                    'jenis_perkerasan.lhr',
+                    'jenis_perkerasan.keterangan'
+                )
+                ->latest();
 
             if ($request->has('search') && $request->input('search')) {
                 $searchTerm = $request->input('search');
@@ -91,7 +93,7 @@ class JenisPerkerasanController extends Controller
 
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
-            }   
+            }
 
             $data = $query->paginate($paginate_count);
             $resData = $data->getCollection()->map(function ($query) {
@@ -118,9 +120,11 @@ class JenisPerkerasanController extends Controller
                     "rusak_ringan" => $this->number_format($query->rusak_ringan),
                     "rusak_berat" => $this->number_format($query->rusak_berat),
                     "created_at" => $query->created_at,
-                    "name_kecamatan" =>$query->name_kecamatan,
-                    "lhr" =>$query->lhr,
-                    "keterangan" =>$query->keterangan,
+                    "name_kecamatan" => $query->name_kecamatan,
+                    "lhr" => $query->lhr,
+                    "keterangan" => $query->keterangan,
+                    "status" => $query->status,
+                    "alasan" => $query->alasan,
                     "mantap"            => $mantap, // ((baik+sedang)/panjang_ruas) * 100)
                     "tmantap"           => $tmantap, //  ((rusak_ringan+rusak_berat) * 100)
                 ];
@@ -132,8 +136,7 @@ class JenisPerkerasanController extends Controller
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil get data'
-            ]); 
-
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -179,11 +182,8 @@ class JenisPerkerasanController extends Controller
                 'data' => $data,
                 'message' => 'Berhasil create data'
             ]);
-
-
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
-
         }
     }
 
@@ -193,34 +193,36 @@ class JenisPerkerasanController extends Controller
     public function show(string $id)
     {
         try {
-            $data = JenisPerkerasan::leftjoin('master_ruas_jalan','master_ruas_jalan.id','=','jenis_perkerasan.ruas_jalan_id')
-            ->leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_ruas_jalan.kecamatan')
-            ->select(
-                'jenis_perkerasan.id',
-                'jenis_perkerasan.ruas_jalan_id',
-                'master_ruas_jalan.nama as nama_ruas',
-                'master_koridor.id as id_koridor',
-                'master_koridor.name as nama_koridor',
-                'master_ruas_jalan.panjang_ruas',
-                'master_ruas_jalan.no_ruas',
-                'master_ruas_jalan.lebar',
-                'master_ruas_jalan.akses',
-                'jenis_perkerasan.rigit',
-                'jenis_perkerasan.hotmix',
-                'jenis_perkerasan.lapen',
-                'jenis_perkerasan.telford',
-                'jenis_perkerasan.tanah',
-                'jenis_perkerasan.tahun',
-                'jenis_perkerasan.baik',
-                'jenis_perkerasan.sedang',
-                'jenis_perkerasan.rusak_ringan',
-                'jenis_perkerasan.rusak_berat',
-                'jenis_perkerasan.created_at',
-                'jenis_perkerasan.lhr',
-                'jenis_perkerasan.keterangan',
-                'kecamatan.name as name_kecamatan'
-            )->find($id);
+            $data = JenisPerkerasan::leftjoin('master_ruas_jalan', 'master_ruas_jalan.id', '=', 'jenis_perkerasan.ruas_jalan_id')
+                ->leftjoin('master_koridor', 'master_koridor.id', '=', 'master_ruas_jalan.koridor_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_ruas_jalan.kecamatan')
+                ->select(
+                    'jenis_perkerasan.id',
+                    'jenis_perkerasan.ruas_jalan_id',
+                    'master_ruas_jalan.nama as nama_ruas',
+                    'master_koridor.id as id_koridor',
+                    'master_koridor.name as nama_koridor',
+                    'master_ruas_jalan.panjang_ruas',
+                    'master_ruas_jalan.no_ruas',
+                    'master_ruas_jalan.lebar',
+                    'master_ruas_jalan.akses',
+                    'master_ruas_jalan.status',
+                    'master_ruas_jalan.alasan',
+                    'jenis_perkerasan.rigit',
+                    'jenis_perkerasan.hotmix',
+                    'jenis_perkerasan.lapen',
+                    'jenis_perkerasan.telford',
+                    'jenis_perkerasan.tanah',
+                    'jenis_perkerasan.tahun',
+                    'jenis_perkerasan.baik',
+                    'jenis_perkerasan.sedang',
+                    'jenis_perkerasan.rusak_ringan',
+                    'jenis_perkerasan.rusak_berat',
+                    'jenis_perkerasan.created_at',
+                    'jenis_perkerasan.lhr',
+                    'jenis_perkerasan.keterangan',
+                    'kecamatan.name as name_kecamatan'
+                )->find($id);
 
             if (!$data) {
                 return response()->json(['error' => 'ID tidak ditemukan']);
@@ -281,10 +283,8 @@ class JenisPerkerasanController extends Controller
                 'data' => $data,
                 'message' => 'Berhasil update data'
             ]);
-
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
-
         }
     }
 
@@ -310,7 +310,7 @@ class JenisPerkerasanController extends Controller
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil delete data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -320,34 +320,36 @@ class JenisPerkerasanController extends Controller
     {
         try {
             $paginate_count = 10;
-            $query = JenisPerkerasan::leftjoin('master_ruas_jalan','master_ruas_jalan.id','=','jenis_perkerasan.ruas_jalan_id')
-            ->leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_ruas_jalan.kecamatan')
-            ->select(
-                'jenis_perkerasan.id',
-                'jenis_perkerasan.ruas_jalan_id',
-                'master_ruas_jalan.nama as nama_ruas',
-                'master_koridor.id as id_koridor',
-                'master_koridor.name as nama_koridor',
-                'master_ruas_jalan.panjang_ruas',
-                'master_ruas_jalan.no_ruas',
-                'master_ruas_jalan.lebar',
-                'master_ruas_jalan.akses',
-                'jenis_perkerasan.rigit',
-                'jenis_perkerasan.hotmix',
-                'jenis_perkerasan.lapen',
-                'jenis_perkerasan.telford',
-                'jenis_perkerasan.tanah',
-                'jenis_perkerasan.tahun',
-                'jenis_perkerasan.baik',
-                'jenis_perkerasan.sedang',
-                'jenis_perkerasan.rusak_ringan',
-                'jenis_perkerasan.rusak_berat',
-                'jenis_perkerasan.created_at',
-                'jenis_perkerasan.lhr',
-                'jenis_perkerasan.keterangan'
-            )
-            ->latest();
+            $query = JenisPerkerasan::leftjoin('master_ruas_jalan', 'master_ruas_jalan.id', '=', 'jenis_perkerasan.ruas_jalan_id')
+                ->leftjoin('master_koridor', 'master_koridor.id', '=', 'master_ruas_jalan.koridor_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_ruas_jalan.kecamatan')
+                ->select(
+                    'jenis_perkerasan.id',
+                    'jenis_perkerasan.ruas_jalan_id',
+                    'master_ruas_jalan.nama as nama_ruas',
+                    'master_koridor.id as id_koridor',
+                    'master_koridor.name as nama_koridor',
+                    'master_ruas_jalan.panjang_ruas',
+                    'master_ruas_jalan.no_ruas',
+                    'master_ruas_jalan.lebar',
+                    'master_ruas_jalan.akses',
+                    'jenis_perkerasan.rigit',
+                    'jenis_perkerasan.hotmix',
+                    'jenis_perkerasan.lapen',
+                    'jenis_perkerasan.telford',
+                    'jenis_perkerasan.tanah',
+                    'jenis_perkerasan.tahun',
+                    'jenis_perkerasan.baik',
+                    'jenis_perkerasan.sedang',
+                    'jenis_perkerasan.rusak_ringan',
+                    'jenis_perkerasan.rusak_berat',
+                    'jenis_perkerasan.created_at',
+                    'jenis_perkerasan.lhr',
+                    'jenis_perkerasan.keterangan',
+                    'master_ruas_jalan.status',
+                    'master_ruas_jalan.alasan'
+                )
+                ->latest();
 
             if ($request->has('search') && $request->input('search')) {
                 $searchTerm = $request->input('search');
@@ -366,7 +368,7 @@ class JenisPerkerasanController extends Controller
 
             if ($request->has('paginate_count') && $request->input('paginate_count')) {
                 $paginate_count = $request->input('paginate_count');
-            }   
+            }
 
             $data = $query->paginate($paginate_count);
             $resData = $data->getCollection()->map(function ($query) {
@@ -381,7 +383,7 @@ class JenisPerkerasanController extends Controller
                     "lebar" => $query->lebar,
                     "akses" => $query->akses,
                     "rigit" => $this->number_format($query->rigit),
-                    "hotmix"=> $this->number_format($query->hotmix),
+                    "hotmix" => $this->number_format($query->hotmix),
                     "lapen" => $this->number_format($query->lapen),
                     "telford" => $this->number_format($query->telford),
                     "tanah" => $this->number_format($query->tanah),
@@ -391,9 +393,9 @@ class JenisPerkerasanController extends Controller
                     "rusak_ringan" => $this->number_format($query->rusak_ringan),
                     "rusak_berat" => $this->number_format($query->rusak_berat),
                     "created_at" => $query->created_at,
-                    "name_kecamatan" =>$query->name_kecamatan,
-                    "lhr" =>$query->lhr,
-                    "keterangan" =>$query->keterangan
+                    "name_kecamatan" => $query->name_kecamatan,
+                    "lhr" => $query->lhr,
+                    "keterangan" => $query->keterangan
                 ];
             });
 
@@ -403,7 +405,7 @@ class JenisPerkerasanController extends Controller
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil get data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

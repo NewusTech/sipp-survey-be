@@ -30,6 +30,8 @@ class Jembatan extends Model
         'kondisi_lantai',
         'latitude',
         'longitude',
+        'status',
+        'keterangan',
         'created_by',
         'tahun'
     ];

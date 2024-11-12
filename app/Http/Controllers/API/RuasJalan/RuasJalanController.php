@@ -27,21 +27,23 @@ class RuasJalanController extends Controller
         try {
             $paginate_count = 10;
             $query = RuasJalan::select(
-                        'master_ruas_jalan.id',
-                        'master_ruas_jalan.no_ruas',
-                        'master_ruas_jalan.nama',
-                        'master_ruas_jalan.koridor_id',
-                        'master_koridor.name as name_koridor',
-                        'master_ruas_jalan.kecamatan as kecamatan_id',
-                        'master_ruas_jalan.kabupaten',
-                        'master_ruas_jalan.panjang_ruas',
-                        'master_ruas_jalan.lebar',
-                        'kecamatan.name as kecamatan',
-                        'master_ruas_jalan.created_at'
-                    )
-                    ->leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
-                    ->leftjoin('kecamatan','kecamatan.id','=', 'master_ruas_jalan.kecamatan')
-                    ->latest();
+                'master_ruas_jalan.id',
+                'master_ruas_jalan.no_ruas',
+                'master_ruas_jalan.nama',
+                'master_ruas_jalan.koridor_id',
+                'master_koridor.name as name_koridor',
+                'master_ruas_jalan.kecamatan as kecamatan_id',
+                'master_ruas_jalan.kabupaten',
+                'master_ruas_jalan.panjang_ruas',
+                'master_ruas_jalan.lebar',
+                'kecamatan.name as kecamatan',
+                'master_ruas_jalan.created_at',
+                'master_ruas_jalan.status',
+                'master_ruas_jalan.alasan'
+            )
+                ->leftjoin('master_koridor', 'master_koridor.id', '=', 'master_ruas_jalan.koridor_id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_ruas_jalan.kecamatan')
+                ->latest();
 
             if ($request->has('search') && $request->input('search')) {
                 $searchTerm = $request->input('search');
@@ -81,7 +83,7 @@ class RuasJalanController extends Controller
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil get data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -109,7 +111,7 @@ class RuasJalanController extends Controller
             ]);
 
             if ($validator->fails()) {
-                 return response()->json(['error' => $validator->errors()->first()], 500);
+                return response()->json(['error' => $validator->errors()->first()], 500);
             }
             $ruas = new RuasJalan();
             $ruas->no_ruas      = $request->no_ruas;
@@ -131,13 +133,13 @@ class RuasJalanController extends Controller
 
             if ($request->hasFile('images')) {
                 $images = $request->file('images');
-    
+
                 foreach ($images as $image) {
                     $imageName = $image->getClientOriginalName();
                     Storage::putFileAs('public/ruas_jalan', $image, $imageName);
                     $uploadedImages[] = $imageName;
-                    $imageName = str_replace(" ","", $imageName);
-                    RuasJalanPhotos::create(['ruas_jalan_id' => $ruas->id, 'image' => '/ruas_jalan/'.strtolower($imageName)]);
+                    $imageName = str_replace(" ", "", $imageName);
+                    RuasJalanPhotos::create(['ruas_jalan_id' => $ruas->id, 'image' => '/ruas_jalan/' . strtolower($imageName)]);
                 }
             }
 
@@ -146,7 +148,7 @@ class RuasJalanController extends Controller
                 'success' => true,
                 'data' => $ruas,
                 'message' => 'Berhasil create data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -159,27 +161,29 @@ class RuasJalanController extends Controller
     public function show(string $id)
     {
         try {
-            $ruas = RuasJalan::leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
-            ->leftjoin('ruas_jalan_photos','ruas_jalan_photos.ruas_jalan_id','=','master_ruas_jalan.id')
-            ->leftjoin('kecamatan','kecamatan.id','=','master_ruas_jalan.kecamatan')
-            ->select(
-                'master_ruas_jalan.id',
-                'master_ruas_jalan.no_ruas',
-                'master_koridor.id as koridor_id',
-                'master_koridor.name as koridor_name',
-                'master_ruas_jalan.nama as nama_ruas',
-                'master_ruas_jalan.panjang_ruas',
-                'master_ruas_jalan.lebar',
-                'master_ruas_jalan.akses',
-                'master_ruas_jalan.provinsi',
-                'master_ruas_jalan.kabupaten',
-                'master_ruas_jalan.kecamatan as kecamatan_id',
-                'kecamatan.name as kecamatan',
-                'master_ruas_jalan.desa',
-                'master_ruas_jalan.latitude',
-                'master_ruas_jalan.longitude',
-                'ruas_jalan_photos.image'
-            )->find($id);
+            $ruas = RuasJalan::leftjoin('master_koridor', 'master_koridor.id', '=', 'master_ruas_jalan.koridor_id')
+                ->leftjoin('ruas_jalan_photos', 'ruas_jalan_photos.ruas_jalan_id', '=', 'master_ruas_jalan.id')
+                ->leftjoin('kecamatan', 'kecamatan.id', '=', 'master_ruas_jalan.kecamatan')
+                ->select(
+                    'master_ruas_jalan.id',
+                    'master_ruas_jalan.no_ruas',
+                    'master_koridor.id as koridor_id',
+                    'master_koridor.name as koridor_name',
+                    'master_ruas_jalan.nama as nama_ruas',
+                    'master_ruas_jalan.panjang_ruas',
+                    'master_ruas_jalan.lebar',
+                    'master_ruas_jalan.akses',
+                    'master_ruas_jalan.provinsi',
+                    'master_ruas_jalan.kabupaten',
+                    'master_ruas_jalan.kecamatan as kecamatan_id',
+                    'kecamatan.name as kecamatan',
+                    'master_ruas_jalan.desa',
+                    'master_ruas_jalan.latitude',
+                    'master_ruas_jalan.longitude',
+                    'master_ruas_jalan.status',
+                    'master_ruas_jalan.alasan',
+                    'ruas_jalan_photos.image'
+                )->find($id);
 
             if (!$ruas) {
                 return response()->json(['error' => 'id tidak ditemukan'], 500);
@@ -190,16 +194,52 @@ class RuasJalanController extends Controller
             foreach ($selectPhoto as $key => $item) {
                 $collectionImage[] = $item->image;
             }
-            
+
             $ruas['image'] = $collectionImage;
 
             return response()->json([
                 'success' => true,
                 'data' => $ruas,
                 'message' => 'Berhasil menampilkan data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Verify the existence of a RuasJalan resource by ID.
+     */
+    public function verify(Request $request, string $id)
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|string|max:255',
+                'alasan' => 'nullable|string|max:500',
+            ]);
+            // Check if the resource exists
+            $ruasJalan = RuasJalan::find($id);
+
+            if (!$ruasJalan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data not found',
+                ], 404);
+            }
+
+            $ruasJalan->status = $validated['status'];
+            $ruasJalan->alasan = $validated['alasan'] ?? null;
+            $ruasJalan->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil Verifikasi data',
+                'data' => $ruasJalan
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -217,13 +257,13 @@ class RuasJalanController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-           $validator = Validator::make($request->all(), [
+            $validator = Validator::make($request->all(), [
                 'nama' => 'required',
                 'panjang_ruas' => 'required'
             ]);
 
             if ($validator->fails()) {
-                 return response()->json(['error' => $validator->errors()->first()], 500);
+                return response()->json(['error' => $validator->errors()->first()], 500);
             }
             $update = RuasJalan::find($id);
             if (!$update) {
@@ -247,14 +287,14 @@ class RuasJalanController extends Controller
 
             if ($request->hasFile('images')) {
                 $images = $request->file('images');
-    
+
                 RuasJalanPhotos::where('ruas_jalan_id', $update->id)->delete();
                 foreach ($images as $image) {
                     $imageName = $image->getClientOriginalName();
                     Storage::putFileAs('public/ruas_jalan', $image, $imageName);
                     $uploadedImages[] = $imageName;
-                    $imageName = str_replace(" ","", $imageName);
-                    RuasJalanPhotos::create(['ruas_jalan_id' => $update->id, 'image' => '/ruas_jalan/'.strtolower($imageName)]);
+                    $imageName = str_replace(" ", "", $imageName);
+                    RuasJalanPhotos::create(['ruas_jalan_id' => $update->id, 'image' => '/ruas_jalan/' . strtolower($imageName)]);
                 }
             }
 
@@ -263,7 +303,7 @@ class RuasJalanController extends Controller
                 'success' => true,
                 'data' => $update,
                 'message' => 'Berhasil update data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -294,7 +334,7 @@ class RuasJalanController extends Controller
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil delete data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -305,17 +345,17 @@ class RuasJalanController extends Controller
     {
         try {
             $data = RuasJalan::select(
-                        'master_ruas_jalan.id',
-                        'master_ruas_jalan.no_ruas',
-                        'master_ruas_jalan.nama',
-                        'master_ruas_jalan.kabupaten'
-                    )->get();
+                'master_ruas_jalan.id',
+                'master_ruas_jalan.no_ruas',
+                'master_ruas_jalan.nama',
+                'master_ruas_jalan.kabupaten'
+            )->get();
 
             return response()->json([
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil get data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -333,15 +373,15 @@ class RuasJalanController extends Controller
                 'master_koridor.name as name_koridor',
                 'master_ruas_jalan.latitude',
                 'master_ruas_jalan.longitude'
-            )->leftjoin('master_koridor','master_koridor.id','=','master_ruas_jalan.koridor_id')
-            ->where('master_ruas_jalan.id', $id)
-            ->get();
+            )->leftjoin('master_koridor', 'master_koridor.id', '=', 'master_ruas_jalan.koridor_id')
+                ->where('master_ruas_jalan.id', $id)
+                ->get();
 
             return response()->json([
                 'success' => true,
                 'data' => $data,
                 'message' => 'Berhasil get data'
-            ]); 
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
