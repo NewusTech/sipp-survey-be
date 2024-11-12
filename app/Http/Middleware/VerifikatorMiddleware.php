@@ -24,7 +24,7 @@ class VerifikatorMiddleware
         $user = Auth::user();
 
         // Jika pengguna adalah SuperAdmin atau Verifikator, izinkan akses tanpa batasan
-        if ($user->hasRole('SuperAdmin') || $user->hasRole('Verifikator')) {
+        if ($user->hasRole('Admin') || $user->hasRole('Verifikator')) {
             return $next($request);
         }
 
